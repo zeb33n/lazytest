@@ -61,7 +61,7 @@ func main() {
 		engines = append(engines, pytest.NewPytestEngine(r))
 	}
 
-	if !slices.Contains(excludedEngines, "c") {
+	if !slices.Contains(excludedEngines, "C") {
 		engines = append(engines, C.NewCEngine(r))
 	}
 

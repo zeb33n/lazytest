@@ -29,11 +29,10 @@ func NewCEngine(r engines.Runner) *CEngine {
 func (c *CEngine) GetIcon() string { return icon }
 
 func (c *CEngine) Load(dir string) (*models.LazyTree, error) {
-	// In C the command to run tests is un standardised
-	// since its often tied to the makefile. should add a config file
-	// so people can tweek this. At the moment they just have to setup
-	// the makefile in a compatible way
-	o, err := c.Runner.RunCmd("make test TFLAGS=--list")
+	// should make the command configurable. maybe some thing like https://docs.helix-editor.com/languages.html
+	// Testing in C normally always uses custom binaries associated with the make file
+	// could extrapolate that to have a generic configurable engine perhaps!
+	o, err := c.Runner.RunCmd(fmt.Sprintf("cd %s && make test TFLAGS=--list", dir))
 	if err != nil {
 		return nil, nil
 	}
@@ -42,7 +41,7 @@ func (c *CEngine) Load(dir string) (*models.LazyTree, error) {
 		Ref:      nil,
 		Children: make(map[string]*cNode),
 	}
-	lines := strings.Split(o, "\n")
+	lines := strings.Split(o, "\n")[1:]
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
 		if line == "" {
@@ -50,7 +49,6 @@ func (c *CEngine) Load(dir string) (*models.LazyTree, error) {
 		}
 
 		parts := strings.Split(line, "/")
-		// segfault if len parts == 1
 		if len(parts) == 0 {
 			continue
 		}
@@ -59,6 +57,9 @@ func (c *CEngine) Load(dir string) (*models.LazyTree, error) {
 		var testSuite *models.LazyTestSuite
 
 		for i, part := range parts {
+			if part == "" {
+				continue
+			}
 			childNode, exists := currentNode.Children[part]
 
 			if !exists {
@@ -73,6 +74,7 @@ func (c *CEngine) Load(dir string) (*models.LazyTree, error) {
 			}
 			currentNode = childNode
 
+			// this is wrong for some reason
 			if i == len(parts)-2 {
 				testSuite = currentNode.Ref.(*models.LazyTestSuite)
 			}
@@ -80,7 +82,7 @@ func (c *CEngine) Load(dir string) (*models.LazyTree, error) {
 			if i == len(parts)-1 {
 				test := &models.LazyTest{
 					Name:   part,
-					RunCmd: fmt.Sprintf("make test TFLAGS=%s", line),
+					RunCmd: fmt.Sprintf("cd %s && make test TFLAGS=%s", dir, line),
 				}
 				childNode.Ref = test
 				testSuite.Tests = append(testSuite.Tests, test)
