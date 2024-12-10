@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/kampanosg/lazytest/pkg/config"
 	"github.com/kampanosg/lazytest/pkg/engines"
 	"github.com/kampanosg/lazytest/pkg/models"
 )
@@ -20,39 +21,24 @@ type genNode struct {
 // TODO add a way to switch between list command/file naming convention
 // TODO refactor the configs into their own struct
 type GenEngine struct {
-	Runner        engines.Runner
-	listCommand   string
-	runCommand    string
-	dirSeperator  string
-	testSeperator string
-	icon          string
-	skipLines     int
+	Runner engines.Runner
+	config conf.EngineConfig
 }
 
 func NewGenEngine(
 	r engines.Runner,
-	lc string,
-	rc string,
-	ds string,
-	ts string,
-	i string,
-	sl int,
+	config conf.EngineConfig,
 ) *GenEngine {
 	return &GenEngine{
-		Runner:        r,
-		listCommand:   lc,
-		runCommand:    rc,
-		dirSeperator:  ds,
-		testSeperator: ts,
-		icon:          i,
-		skipLines:     sl,
+		Runner: r,
+		config: config,
 	}
 }
 
-func (g *GenEngine) GetIcon() string { return g.icon }
+func (g *GenEngine) GetIcon() string { return g.config.Icon }
 
 func (g *GenEngine) Load(dir string) (*models.LazyTree, error) {
-	o, err := g.Runner.RunCmd(fmt.Sprintf("cd %s && %s", dir, g.listCommand))
+	o, err := g.Runner.RunCmd(fmt.Sprintf("cd %s && %s", dir, g.config.ListCommand))
 	if err != nil {
 		return nil, nil
 	}
@@ -61,15 +47,15 @@ func (g *GenEngine) Load(dir string) (*models.LazyTree, error) {
 		Ref:      nil,
 		Children: make(map[string]*genNode),
 	}
-	lines := strings.Split(o, "\n")[g.skipLines:]
+	lines := strings.Split(o, "\n")[g.config.SkipLines:]
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
 		if line == "" {
 			continue
 		}
-		line = strings.Replace(line, g.testSeperator, g.dirSeperator, 1)
+		line = strings.Replace(line, g.config.TestSeperator, g.config.DirSeperator, 1)
 
-		parts := strings.Split(line, g.dirSeperator)
+		parts := strings.Split(line, g.config.DirSeperator)
 		if len(parts) == 0 {
 			continue
 		}
@@ -103,7 +89,7 @@ func (g *GenEngine) Load(dir string) (*models.LazyTree, error) {
 			if i == len(parts)-1 {
 				test := &models.LazyTest{
 					Name:   part,
-					RunCmd: fmt.Sprintf("cd %s && %s%s", dir, g.runCommand, line),
+					RunCmd: fmt.Sprintf("cd %s && %s%s", dir, g.config.RunCommand, line),
 				}
 				childNode.Ref = test
 				testSuite.Tests = append(testSuite.Tests, test)

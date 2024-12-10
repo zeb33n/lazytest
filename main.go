@@ -12,6 +12,7 @@ import (
 	"github.com/kampanosg/lazytest/internal/tui/elements"
 	"github.com/kampanosg/lazytest/internal/tui/handlers"
 	"github.com/kampanosg/lazytest/internal/tui/state"
+	"github.com/kampanosg/lazytest/pkg/config"
 	"github.com/kampanosg/lazytest/pkg/engines"
 	"github.com/kampanosg/lazytest/pkg/engines/bashunit"
 	"github.com/kampanosg/lazytest/pkg/engines/c"
@@ -28,7 +29,7 @@ var version string
 func main() {
 	dir := flag.String("dir", ".", "the directory to start searching for tests")
 	exc := flag.String("excl", "", "engines to exclude")
-	// con := flag.String("conf", "~/.config/lazytest/config.toml", "the address of the config file")
+	con := flag.String("conf", "~/.config/lazytest/config.toml", "the address of the config file")
 	vsn := flag.Bool("version", false, "the current version of LazyTest")
 	flag.Parse()
 
@@ -67,15 +68,9 @@ func main() {
 		engines = append(engines, C.NewCEngine(r))
 	}
 
-	engines = append(engines, generic.NewGenEngine(
-		r,
-		"make test TFLAGS=--list",
-		"make test TFLAGS=",
-		"/",
-		"/",
-		"@",
-		1,
-	))
+	for _, engineConf := range conf.GetConfig(*con) {
+		engines = append(engines, generic.NewGenEngine(r, engineConf))
+	}
 
 	t := tui.NewTUI(a, h, r, c, e, s, *dir, engines)
 
