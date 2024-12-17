@@ -68,7 +68,7 @@ func main() {
 		engines = append(engines, C.NewCEngine(r))
 	}
 
-	for _, engineConf := range conf.GetConfig(*con) {
+	for _, engineConf := range conf.GetConfig(*con).ClientInfo {
 		engines = append(engines, generic.NewGenEngine(r, engineConf))
 	}
 
