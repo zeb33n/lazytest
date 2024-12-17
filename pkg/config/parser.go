@@ -29,30 +29,23 @@ icon = ""
 skiplines = 1
 `
 
-// func GetConfig(dir string) []EngineConfig {
-// 	return []EngineConfig{
-// 		{
-// 			"make test TFLAGS=--list",
-// 			"make test TFLAGS=",
-// 			"/",
-// 			"/",
-// 			"banana",
-// 			1,
-// 		},
-// 	}
-// }
-
+// TODO include some sensible defaults
 func GetConfig(dir string) UserConfig {
-	f, err := os.OpenFile("testlogfile", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0o666)
+	f, err := os.ReadFile(dir)
 	if err != nil {
-		log.Fatalf("error opening file: %v", err)
+		log.Fatal(err)
 	}
-	defer f.Close()
 
-	log.SetOutput(f)
+	// f, err := os.OpenFile("testlogfile", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0o666)
+	// if err != nil {
+	// 	log.Fatalf("error opening file: %v", err)
+	// }
+	// defer f.Close()
+
+	// log.SetOutput(f)
 
 	var conf UserConfig
-	_, err = toml.Decode(tomlData, &conf)
+	_, err = toml.Decode(string(f), &conf)
 	if err != nil {
 		log.Fatal(err)
 	}
