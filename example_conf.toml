@@ -1,0 +1,15 @@
+# [lang.c]
+# listCommand = "make test TFLAGS=--list"
+# runCommand = "make test TFLAGS="
+# dirSeperator = "/"
+# testSeperator = "/"
+# icon = "C"
+# skiplines = 1
+
+[lang.python]
+listCommand = 'pytest --collect-only -q | head -n -2 | tac | sed "0,/warnings/d" | tac'
+runCommand = "pytest -x "
+dirSeperator = "/"
+testSeperator = "::"
+icon = "P"
+skiplines = 0

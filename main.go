@@ -28,13 +28,9 @@ import (
 var version string
 
 func main() {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		panic(err)
-	}
 	dir := flag.String("dir", ".", "the directory to start searching for tests")
 	exc := flag.String("excl", "", "engines to exclude")
-	con := flag.String("conf", fmt.Sprintf("%s/.config/lazytest/config.toml", home), "the address of the config file")
+	con := flag.String("conf", fmt.Sprintf("%s/lazytest.toml", dir), "the address of the config file")
 	vsn := flag.Bool("version", false, "the current version of LazyTest")
 	flag.Parse()
 

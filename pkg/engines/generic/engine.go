@@ -2,6 +2,8 @@ package generic
 
 import (
 	"fmt"
+	"log"
+	"os"
 	"strings"
 
 	"github.com/kampanosg/lazytest/pkg/config"
@@ -9,17 +11,13 @@ import (
 	"github.com/kampanosg/lazytest/pkg/models"
 )
 
-// const icon = "@"
-
 type genNode struct {
 	Ref      any
 	Children map[string]*genNode
 	Name     string
 }
 
-// TODO put some defaults somewhere
 // TODO add a way to switch between list command/file naming convention
-// TODO refactor the configs into their own struct
 type GenEngine struct {
 	Runner engines.Runner
 	config conf.EngineConfig
@@ -38,6 +36,14 @@ func NewGenEngine(
 func (g *GenEngine) GetIcon() string { return g.config.Icon }
 
 func (g *GenEngine) Load(dir string) (*models.LazyTree, error) {
+	f, err := os.OpenFile("testlogfile", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0o666)
+	if err != nil {
+		log.Fatalf("error opening file: %v", err)
+	}
+	defer f.Close()
+
+	log.SetOutput(f)
+
 	o, err := g.Runner.RunCmd(fmt.Sprintf("cd %s && %s", dir, g.config.ListCommand))
 	if err != nil {
 		return nil, nil
@@ -48,12 +54,12 @@ func (g *GenEngine) Load(dir string) (*models.LazyTree, error) {
 		Children: make(map[string]*genNode),
 	}
 	lines := strings.Split(o, "\n")[g.config.SkipLines:]
-	for _, line := range lines {
-		line = strings.TrimSpace(line)
-		if line == "" {
+	for _, oline := range lines {
+		oline = strings.TrimSpace(oline)
+		if oline == "" {
 			continue
 		}
-		line = strings.Replace(line, g.config.TestSeperator, g.config.DirSeperator, 1)
+		line := strings.Replace(oline, g.config.TestSeperator, g.config.DirSeperator, 1)
 
 		parts := strings.Split(line, g.config.DirSeperator)
 		if len(parts) == 0 {
@@ -81,7 +87,6 @@ func (g *GenEngine) Load(dir string) (*models.LazyTree, error) {
 			}
 			currentNode = childNode
 
-			// this is wrong for some reason
 			if i == len(parts)-2 {
 				testSuite = currentNode.Ref.(*models.LazyTestSuite)
 			}
@@ -89,9 +94,10 @@ func (g *GenEngine) Load(dir string) (*models.LazyTree, error) {
 			if i == len(parts)-1 {
 				test := &models.LazyTest{
 					Name:   part,
-					RunCmd: fmt.Sprintf("cd %s && %s%s", dir, g.config.RunCommand, line),
+					RunCmd: fmt.Sprintf("cd %s && %s%s", dir, g.config.RunCommand, oline),
 				}
 				childNode.Ref = test
+				log.Println(test)
 				testSuite.Tests = append(testSuite.Tests, test)
 			}
 		}
