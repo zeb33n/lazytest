@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
 	"slices"
 	"strings"
 
@@ -30,9 +29,14 @@ var version string
 func main() {
 	dir := flag.String("dir", ".", "the directory to start searching for tests")
 	exc := flag.String("excl", "", "engines to exclude")
-	con := flag.String("conf", fmt.Sprintf("%s/lazytest.toml", dir), "the address of the config file")
+	con := flag.String("conf", "./lazytest.toml", "the address of the config file")
 	vsn := flag.Bool("version", false, "the current version of LazyTest")
 	flag.Parse()
+
+	// maybe a better way to do this
+	if *dir != "." && *con == "./lazytest.toml" {
+		*con = fmt.Sprintf("%s/lazytest.toml", *dir)
+	}
 
 	if *vsn {
 		fmt.Printf("LazyTest %s\n", version)

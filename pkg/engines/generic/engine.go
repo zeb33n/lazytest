@@ -2,8 +2,6 @@ package generic
 
 import (
 	"fmt"
-	"log"
-	"os"
 	"strings"
 
 	"github.com/kampanosg/lazytest/pkg/config"
@@ -36,13 +34,13 @@ func NewGenEngine(
 func (g *GenEngine) GetIcon() string { return g.config.Icon }
 
 func (g *GenEngine) Load(dir string) (*models.LazyTree, error) {
-	f, err := os.OpenFile("testlogfile", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0o666)
-	if err != nil {
-		log.Fatalf("error opening file: %v", err)
-	}
-	defer f.Close()
+	// f, err := os.OpenFile("testlogfile", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0o666)
+	// if err != nil {
+	// 	log.Fatalf("error opening file: %v", err)
+	// }
+	// defer f.Close()
 
-	log.SetOutput(f)
+	// log.SetOutput(f)
 
 	o, err := g.Runner.RunCmd(fmt.Sprintf("cd %s && %s", dir, g.config.ListCommand))
 	if err != nil {
@@ -97,7 +95,6 @@ func (g *GenEngine) Load(dir string) (*models.LazyTree, error) {
 					RunCmd: fmt.Sprintf("cd %s && %s%s", dir, g.config.RunCommand, oline),
 				}
 				childNode.Ref = test
-				log.Println(test)
 				testSuite.Tests = append(testSuite.Tests, test)
 			}
 		}
