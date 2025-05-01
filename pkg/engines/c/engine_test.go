@@ -20,7 +20,7 @@ func TestCEngine_GetIcon(t *testing.T) {
 	p := NewCEngine(nil)
 	icon := p.GetIcon()
 	if icon != "C" {
-		t.Errorf("expected icont to be 'C, but got %s", icon)
+		t.Errorf("expected icon to be 'C', but got %s", icon)
 	}
 }
 
